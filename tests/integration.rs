@@ -492,13 +492,7 @@ async fn user_get_data() -> Result<()> {
 
     // Get the file
     let get_output = run_cli_dynamic(
-        &[
-            "user",
-            "get",
-            &pubky_url,
-            &recovery_str,
-            "--testnet",
-        ],
+        &["user", "get", &pubky_url, &recovery_str, "--testnet"],
         env.clone(),
     )
     .await?;
@@ -565,13 +559,7 @@ async fn user_delete_data() -> Result<()> {
 
     // Delete the file
     let delete_output = run_cli_dynamic(
-        &[
-            "user",
-            "delete",
-            &pubky_url,
-            &recovery_str,
-            "--testnet",
-        ],
+        &["user", "delete", &pubky_url, &recovery_str, "--testnet"],
         env.clone(),
     )
     .await?;
