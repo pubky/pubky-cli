@@ -2590,7 +2590,6 @@ dependencies = [
  "clap",
  "predicates",
  "pubky",
- "pubky-common",
  "pubky-testnet",
  "reqwest",
  "rpassword",
