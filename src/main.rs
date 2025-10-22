@@ -1,4 +1,5 @@
 mod admin;
+mod tools;
 mod user;
 mod util;
 
@@ -24,6 +25,11 @@ enum Commands {
         #[command(subcommand)]
         action: user::Command,
     },
+    /// Helper utilities.
+    Tools {
+        #[command(subcommand)]
+        action: tools::Command,
+    },
 }
 
 #[tokio::main]
@@ -33,6 +39,7 @@ async fn main() -> Result<()> {
     match cli.command {
         Commands::Admin { action } => admin::run(action).await?,
         Commands::User { action } => user::run(action).await?,
+        Commands::Tools { action } => tools::run(action).await?,
     }
 
     Ok(())
