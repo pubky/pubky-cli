@@ -222,6 +222,33 @@ async fn tools_generate_recovery_creates_file() -> Result<()> {
     Ok(())
 }
 
+#[tokio::test]
+async fn tools_completions_generate_script() -> Result<()> {
+    let tmp = NamedTempFile::new().context("create temp completion file")?;
+    let path = tmp.into_temp_path();
+    let path_buf = path.to_path_buf();
+
+    run_cli_static(
+        &[
+            "tools",
+            "completions",
+            "bash",
+            "--outfile",
+            path_buf.to_str().unwrap(),
+        ],
+        &[],
+    )
+    .await?;
+
+    let contents = std::fs::read_to_string(&path_buf).context("read generated completion")?;
+    assert!(
+        contents.contains("_pubky-cli"),
+        "unexpected completion output"
+    );
+
+    Ok(())
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 #[serial]
 async fn user_signup_signin_session_signout_flow() -> Result<()> {
@@ -414,7 +441,7 @@ async fn run_cli_internal(args: &[&str], env_vec: Vec<(String, String)>) -> Resu
     let args_vec = args.iter().map(|s| s.to_string()).collect::<Vec<_>>();
 
     tokio::task::spawn_blocking(move || {
-        let mut cmd = Command::cargo_bin("pubky-homeserver-cli")?;
+        let mut cmd = Command::cargo_bin("pubky-cli")?;
         for arg in args_vec {
             cmd.arg(arg);
         }
