@@ -60,6 +60,23 @@ PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
   cargo run -- user signout ./alice.recovery --testnet
 ```
 
+#### User Publish/Get/Delete Data
+
+```bash
+# 1) Publish data from file
+PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
+  cargo run -- user publish "/pub/my-cool-app/hello.txt" test.txt ./alice.recovery --testnet
+
+# 2) Get data by path
+PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
+  cargo run -- user get /pub/my-cool-app/hello.txt ./alice.recovery 
+
+# 3) Delete data by path
+PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
+  cargo run -- user delete "/pub/my-cool-app/hello.txt" ./alice.recovery 
+```
+
+
 #### Admin: temporarily disable / enable a user
 
 ```bash

@@ -79,6 +79,38 @@ pub enum Command {
         #[arg(long)]
         testnet: bool,
     },
+    /// Publish data to a Pubky URL from a file.
+    Publish {
+        /// Path to file "/pub/test.txt"
+        data_path: String,
+        /// Path to the file containing the data to publish.
+        file: PathBuf,
+        /// Path to the user's recovery file.
+        recovery_file: PathBuf,
+        /// Use the public network (default) or local testnet configuration.
+        #[arg(long)]
+        testnet: bool,
+    },
+    /// Delete data at a Pubky URL.
+    Delete {
+        /// Path to file "/pub/test.txt"
+        data_path: String,
+        /// Path to the user's recovery file.
+        recovery_file: PathBuf,
+        /// Use the public network (default) or local testnet configuration.
+        #[arg(long)]
+        testnet: bool,
+    },
+    /// Get data to a Pubky URL from a file.
+    Get {
+        /// Path to file "/pub/test.txt"
+        data_path: String,
+        /// Path to the user's recovery file.
+        recovery_file: PathBuf,
+        /// Use the public network (default) or local testnet configuration.
+        #[arg(long)]
+        testnet: bool,
+    },
 }
 
 pub async fn run(command: Command) -> Result<()> {
@@ -115,6 +147,22 @@ pub async fn run(command: Command) -> Result<()> {
             pubkyauth_url,
             testnet,
         } => send_auth_token(recovery_file, pubkyauth_url, testnet).await?,
+        Command::Publish {
+            data_path,
+            file,
+            recovery_file,
+            testnet,
+        } => publish_data(data_path, file, recovery_file, testnet).await?,
+        Command::Delete {
+            data_path,
+            recovery_file,
+            testnet,
+        } => delete_data(data_path, recovery_file, testnet).await?,
+        Command::Get {
+            data_path,
+            recovery_file,
+            testnet,
+        } => get_data(data_path, recovery_file, testnet).await?,
     }
 
     Ok(())
@@ -252,6 +300,106 @@ async fn send_auth_token(
         .with_context(|| "Failed to send Pubky auth token")?;
 
     println!("Auth token sent successfully.");
+
+    Ok(())
+}
+
+async fn publish_data(
+    data_path: String,
+    file: PathBuf,
+    recovery_file: PathBuf,
+    testnet: bool,
+) -> Result<()> {
+    // Load the recovery file and sign in to get a session
+    let keypair = load_keypair_from_recovery_file(&recovery_file)
+        .with_context(|| format!("Failed to load recovery file: {}", recovery_file.display()))?;
+    println!("Loaded recovery file for Pubky {}", keypair.public_key());
+
+    let signer = build_signer(testnet, keypair)?;
+    let session = signer.signin().await?;
+    println!("Signed in successfully. Session details:");
+    println!("{:#?}", session.info());
+
+    // Read the file data
+    let data = tokio::fs::read(&file)
+        .await
+        .with_context(|| format!("Failed to read file: {}", file.display()))?;
+
+    // Get the storage object from the session
+    let storage = session.storage();
+
+    // Use the `put` method to upload the data
+    storage
+        .put(data_path.to_string(), reqwest::Body::from(data))
+        .await
+        .with_context(|| "Failed to publish data")?;
+
+    println!("Data published successfully to {}", data_path);
+
+    // Sign out after publishing
+    session.signout().await.map_err(|(err, _)| err)?;
+    println!("Signed out successfully.");
+
+    Ok(())
+}
+
+async fn delete_data(data_path: String, recovery_file: PathBuf, testnet: bool) -> Result<()> {
+    // Load the recovery file and sign in to get a session
+    let keypair = load_keypair_from_recovery_file(&recovery_file)
+        .with_context(|| format!("Failed to load recovery file: {}", recovery_file.display()))?;
+    println!("Loaded recovery file for Pubky {}", keypair.public_key());
+
+    let signer = build_signer(testnet, keypair)?;
+    let session = signer.signin().await?;
+    println!("Signed in successfully. Session details:");
+    println!("{:#?}", session.info());
+
+    // Get the storage object from the session
+    let storage = session.storage();
+
+    // Use the `delete` method to remove the data
+    storage
+        .delete(data_path.to_string())
+        .await
+        .with_context(|| "Failed to delete data")?;
+
+    println!("Data deleted successfully at {}", data_path);
+
+    // Sign out after deleting
+    session.signout().await.map_err(|(err, _)| err)?;
+    println!("Signed out successfully.");
+
+    Ok(())
+}
+
+async fn get_data(data_path: String, recovery_file: PathBuf, testnet: bool) -> Result<()> {
+    // Load the recovery file and sign in to get a session
+    let keypair = load_keypair_from_recovery_file(&recovery_file)
+        .with_context(|| format!("Failed to load recovery file: {}", recovery_file.display()))?;
+    println!("Loaded recovery file for Pubky {}", keypair.public_key());
+
+    let signer = build_signer(testnet, keypair)?;
+    let session = signer.signin().await?;
+    println!("Signed in successfully. Session details:");
+    println!("{:#?}", session.info());
+
+    // Get the storage object from the session
+    let storage = session.storage();
+
+    // Use the `get` method to get the data
+    let data_text = storage
+        .get(data_path.to_string())
+        .await
+        .with_context(|| "Failed to get data")?
+        .text()
+        .await
+        .with_context(|| "Transform data to text")?;
+
+    println!("Data at {}: {}", data_path, data_text);
+
+    // Sign out after getting data
+    session.signout().await.map_err(|(err, _)| err)?;
+    println!("Signed out successfully.");
 
     Ok(())
 }

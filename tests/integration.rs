@@ -377,6 +377,202 @@ async fn user_list_includes_uploaded_file() -> Result<()> {
     Ok(())
 }
 
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[serial]
+async fn user_publish_data() -> Result<()> {
+    let network = start_testnet().await?;
+    let passphrase = "demo-pass";
+    let env = user_env(passphrase, &network);
+    sleep(Duration::from_millis(500)).await;
+
+    let temp_dir = tempdir().context("create temp dir")?;
+    let recovery_path = temp_dir.path().join("user.recovery");
+    let recovery_str = recovery_path.to_string_lossy().to_string();
+    let homeserver_pk = network.homeserver().public_key().to_string();
+
+    // Generate recovery file
+    run_cli_dynamic(
+        &[
+            "tools",
+            "generate-recovery",
+            &recovery_str,
+            "--passphrase",
+            passphrase,
+        ],
+        env.clone(),
+    )
+    .await?;
+
+    // Signup user
+    run_cli_dynamic(
+        &["user", "signup", &homeserver_pk, &recovery_str, "--testnet"],
+        env.clone(),
+    )
+    .await?;
+
+    // Create a temporary file to publish
+    let file_path = temp_dir.path().join("data.txt");
+    let file_content = "test publish data";
+    std::fs::write(&file_path, file_content).context("write test file")?;
+
+    // Publish the file
+    let pubky_url = "/pub/app/data.txt";
+    let publish_output = run_cli_dynamic(
+        &[
+            "user",
+            "publish",
+            &pubky_url,
+            file_path.to_str().unwrap(),
+            &recovery_str,
+            "--testnet",
+        ],
+        env.clone(),
+    )
+    .await?;
+    let publish_stdout = String::from_utf8_lossy(&publish_output.stdout);
+    assert!(
+        publish_stdout.contains("Data published successfully"),
+        "unexpected publish output: {}",
+        publish_stdout
+    );
+
+    Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[serial]
+async fn user_get_data() -> Result<()> {
+    let network = start_testnet().await?;
+    let passphrase = "demo-pass";
+    let env = user_env(passphrase, &network);
+    sleep(Duration::from_millis(500)).await;
+
+    let temp_dir = tempdir().context("create temp dir")?;
+    let recovery_path = temp_dir.path().join("user.recovery");
+    let recovery_str = recovery_path.to_string_lossy().to_string();
+    let homeserver_pk = network.homeserver().public_key().to_string();
+
+    // Generate recovery file
+    run_cli_dynamic(
+        &[
+            "tools",
+            "generate-recovery",
+            &recovery_str,
+            "--passphrase",
+            passphrase,
+        ],
+        env.clone(),
+    )
+    .await?;
+
+    // Signup user
+    run_cli_dynamic(
+        &["user", "signup", &homeserver_pk, &recovery_str, "--testnet"],
+        env.clone(),
+    )
+    .await?;
+
+    // Create and publish a file
+    let file_path = temp_dir.path().join("data.txt");
+    let file_content = "test get data";
+    std::fs::write(&file_path, file_content).context("write test file")?;
+    let pubky_url = "/pub/app/data.txt";
+    run_cli_dynamic(
+        &[
+            "user",
+            "publish",
+            &pubky_url,
+            file_path.to_str().unwrap(),
+            &recovery_str,
+            "--testnet",
+        ],
+        env.clone(),
+    )
+    .await?;
+
+    // Get the file
+    let get_output = run_cli_dynamic(
+        &["user", "get", &pubky_url, &recovery_str, "--testnet"],
+        env.clone(),
+    )
+    .await?;
+    let get_stdout = String::from_utf8_lossy(&get_output.stdout);
+    assert!(
+        get_stdout.contains(file_content),
+        "unexpected get output: {}",
+        get_stdout
+    );
+
+    Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[serial]
+async fn user_delete_data() -> Result<()> {
+    let network = start_testnet().await?;
+    let passphrase = "demo-pass";
+    let env = user_env(passphrase, &network);
+    sleep(Duration::from_millis(500)).await;
+
+    let temp_dir = tempdir().context("create temp dir")?;
+    let recovery_path = temp_dir.path().join("user.recovery");
+    let recovery_str = recovery_path.to_string_lossy().to_string();
+    let homeserver_pk = network.homeserver().public_key().to_string();
+
+    // Generate recovery file
+    run_cli_dynamic(
+        &[
+            "tools",
+            "generate-recovery",
+            &recovery_str,
+            "--passphrase",
+            passphrase,
+        ],
+        env.clone(),
+    )
+    .await?;
+
+    // Signup user
+    run_cli_dynamic(
+        &["user", "signup", &homeserver_pk, &recovery_str, "--testnet"],
+        env.clone(),
+    )
+    .await?;
+
+    // Create and publish a file
+    let file_path = temp_dir.path().join("data.txt");
+    let file_content = "test delete data";
+    std::fs::write(&file_path, file_content).context("write test file")?;
+    let pubky_url = "/pub/app/data.txt";
+    run_cli_dynamic(
+        &[
+            "user",
+            "publish",
+            &pubky_url,
+            file_path.to_str().unwrap(),
+            &recovery_str,
+            "--testnet",
+        ],
+        env.clone(),
+    )
+    .await?;
+
+    // Delete the file
+    let delete_output = run_cli_dynamic(
+        &["user", "delete", &pubky_url, &recovery_str, "--testnet"],
+        env.clone(),
+    )
+    .await?;
+    let delete_stdout = String::from_utf8_lossy(&delete_output.stdout);
+    assert!(
+        delete_stdout.contains("Data deleted successfully"),
+        "unexpected delete output: {}",
+        delete_stdout
+    );
+
+    Ok(())
+}
+
 const PASS_ENV: &str = "PUBKY_ADMIN_PASSWORD";
 const RECOVERY_PASS_ENV: &str = "PUBKY_CLI_RECOVERY_PASSPHRASE";
 const PKARR_BOOTSTRAP_ENV: &str = "PUBKY_PKARR_BOOTSTRAP";
