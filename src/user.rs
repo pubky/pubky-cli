@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use anyhow::{Context, Result};
 use clap::Subcommand;
-use pubky::{PublicKey, PubkyResource};
+use pubky::{PubkyResource, PublicKey};
 
 use crate::util::{build_pubky, build_signer, load_keypair_from_recovery_file};
 
