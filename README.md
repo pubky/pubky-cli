@@ -33,6 +33,63 @@ cargo run -- tools generate-recovery ./alice.recovery --passphrase pass
 PUBKY_CLI_RECOVERY_PASSPHRASE=pass cargo run -- user signup <homeserver-pk> ./alice.recovery --testnet
 ```
 
+### Common Flows
+
+Once your homeserver is running locally you can drive full workflows directly from this CLI.
+
+#### User Onboarding (local testnet)
+
+```bash
+# 1) Create a recovery file and note the printed public key
+cargo run -- tools generate-recovery ./alice.recovery --passphrase pass
+
+# 2) Sign up; replace <homeserver-pk> with your server's public key
+PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
+  cargo run -- user signup <homeserver-pk> ./alice.recovery --testnet
+
+# 3) Sign in to establish a session
+PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
+  cargo run -- user signin ./alice.recovery --testnet
+
+# 4) Inspect the active session
+PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
+  cargo run -- user session ./alice.recovery --testnet
+
+# 5) Sign out when finished
+PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
+  cargo run -- user signout ./alice.recovery --testnet
+```
+
+#### Admin: temporarily disable / enable a user
+
+```bash
+# Use the user's public key printed during signup
+PUBKY_ADMIN_PASSWORD=admin cargo run -- admin user disable <user-pubkey>
+
+# Re-enable the same user
+PUBKY_ADMIN_PASSWORD=admin cargo run -- admin user enable <user-pubkey>
+```
+
+The examples above assume defaults (`http://127.0.0.1:6288` for the admin API and `--testnet`
+for local wiring). Adjust or omit those flags for other environments.
+
+### Shell Completions
+
+Generate completion scripts directly from the CLI:
+
+```bash
+# Bash example (writes to Homebrew's completion directory)
+pubky-cli tools completions bash --outfile "$(brew --prefix)/etc/bash_completion.d/pubky-cli"
+
+# Zsh example (place in a directory included in $fpath)
+mkdir -p ~/.zfunc
+echo 'fpath+=("$HOME/.zfunc")' >> ~/.zshrc   # run once if needed
+pubky-cli tools completions zsh --outfile ~/.zfunc/_pubky-cli
+```
+
+Supported shells: `bash`, `zsh`, `fish`, `powershell`, and `elvish`. After generating a script,
+reload your shell or source the file (e.g. `source ~/.zshrc`) to enable tab-completion.
+
 ### Environment Variables
 
 | Variable                        | Purpose                                                                           |
