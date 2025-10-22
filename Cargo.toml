@@ -1,11 +1,12 @@
 [package]
-name = "pubky-homeserver-cli"
+name = "pubky-cli"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 anyhow = "1.0.99"
 clap = { version = "4.5.46", features = ["derive", "env"] }
+clap_complete = "4.5.6"
 pubky = "0.6.0-rc.6"
 tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
 rpassword = "7.4.0"
