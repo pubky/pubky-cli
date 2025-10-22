@@ -1,11 +1,11 @@
 use std::str::FromStr;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use clap::{Args, Subcommand};
 use pubky::PublicKey;
 use reqwest::{Client as HttpClient, Method, Url};
-use serde::de::DeserializeOwned;
 use serde::Deserialize;
+use serde::de::DeserializeOwned;
 
 #[derive(Args, Debug, Clone)]
 pub struct ConnectionArgs {
@@ -77,7 +77,9 @@ pub async fn run(command: Command) -> Result<()> {
         Command::Storage { connection, action } => {
             let client = connection.into_client()?;
             match action {
-                StorageCommand::Delete { pubky, path } => delete_entry(&client, &pubky, &path).await?,
+                StorageCommand::Delete { pubky, path } => {
+                    delete_entry(&client, &pubky, &path).await?
+                }
             }
         }
     }
