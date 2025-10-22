@@ -26,16 +26,22 @@ cargo build
 # Run the CLI (examples assume the admin API listens on http://127.0.0.1:6288)
 PUBKY_ADMIN_PASSWORD=admin cargo run -- admin info
 
+# Create a recovery file (writes ./alice.recovery and prints the pubkey)
+cargo run -- tools generate-recovery ./alice.recovery --passphrase pass
+
 # Signup a user (passphrase entered interactively unless the env var below is set)
 PUBKY_CLI_RECOVERY_PASSPHRASE=pass cargo run -- user signup <homeserver-pk> ./alice.recovery --testnet
 ```
 
 ### Environment Variables
 
-| Variable                       | Purpose                                                                  |
-|-------------------------------|--------------------------------------------------------------------------|
-| `PUBKY_ADMIN_PASSWORD`        | Password passed to admin endpoints; can be set globally instead of `--password`. |
+| Variable                        | Purpose                                                                           |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| `PUBKY_ADMIN_PASSWORD`          | Password passed to admin endpoints; can be set globally instead of `--password`.  |
 | `PUBKY_CLI_RECOVERY_PASSPHRASE` | Optional passphrase to automatically decrypt recovery files (useful in CI/tests). |
+| `PUBKY_PKARR_BOOTSTRAP`         | Optional comma-separated list of `<host>:<port>` pairs to override PKARR bootstrap nodes.  |
+| `PUBKY_PKARR_RELAYS`            | Optional comma-separated list of relay URLs if you want to target custom PKARR relays.     |
+| `PUBKY_PKARR_TIMEOUT_MS`        | Optional override (in milliseconds) for PKARR request timeout.                    |
 
 ### Running Tests
 
@@ -60,6 +66,7 @@ Caching is enabled for the cargo registry, git index, and the `target` directory
 ```
 ├── src/
 │   ├── admin.rs    # admin subcommands + HTTP wrapper
+│   ├── tools.rs    # helper utilities, e.g., recovery-file generator
 │   ├── user.rs     # user subcommands built on the pubky SDK
 │   ├── util.rs     # shared helpers (builders, recovery-file handling)
 │   └── main.rs     # thin entrypoint wiring clap + modules
@@ -75,4 +82,4 @@ Caching is enabled for the cargo registry, git index, and the `target` directory
 - [Pubky SDK docs](https://docs.rs/pubky/0.6.0-rc.6/pubky/)
 - [pubky-core repository](https://github.com/pubky/pubky-core)
 
-Feedback and contributions are welcome—feel free to open issues or PRs!***
+Feedback and contributions are welcome—feel free to open issues or PRs!\*\*\*
