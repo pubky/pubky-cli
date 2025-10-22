@@ -295,14 +295,6 @@ async fn publish_data(url: String, file: PathBuf, recovery_file: PathBuf, testne
     println!("Signed in successfully. Session details:");
     println!("{:#?}", session.info());
 
-    // Parse the Pubky URL
-    let resource: PubkyResource = url
-        .parse()
-        .with_context(|| "Publish URL must be pubky://<user>/<path> or pubky<user>/<path>")?;
-
-    // Convert the resource to a string (or another compatible type)
-    let resource_path = resource.to_string(); // Assuming `to_string` produces a valid path
-
     // Read the file data
     let data = tokio::fs::read(&file)
         .await
@@ -313,7 +305,7 @@ async fn publish_data(url: String, file: PathBuf, recovery_file: PathBuf, testne
 
     // Use the `put` method to upload the data
     storage
-        .put(resource_path, reqwest::Body::from(data))
+        .put(url.to_string(), reqwest::Body::from(data))
         .await
         .with_context(|| "Failed to publish data")?;
 
