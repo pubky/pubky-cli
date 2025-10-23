@@ -20,7 +20,7 @@ admin and user-facing APIs, reusing the official `pubky` SDK (`0.6.0-rc.6`) and 
 ## Quick Start
 
 ```bash
-# Clone and build
+# Clone and install
 cargo install --path .
 
 # Run the CLI (examples assume the admin API listens on http://127.0.0.1:6288)
