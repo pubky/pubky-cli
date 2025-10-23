@@ -25,6 +25,7 @@ jobs:
             target: aarch64-apple-darwin
 
 
+    runs-on: ${{ matrix.platform.os }}
     steps:
       - uses: actions/checkout@master
 
