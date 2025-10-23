@@ -21,7 +21,7 @@ admin and user-facing APIs, reusing the official `pubky` SDK (`0.6.0-rc.6`) and 
 
 ```bash
 # Clone and build
-cargo build
+cargo install --path .
 
 # Run the CLI (examples assume the admin API listens on http://127.0.0.1:6288)
 PUBKY_ADMIN_PASSWORD=admin pubky-cli admin info
