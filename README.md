@@ -24,13 +24,13 @@ admin and user-facing APIs, reusing the official `pubky` SDK (`0.6.0-rc.6`) and 
 cargo build
 
 # Run the CLI (examples assume the admin API listens on http://127.0.0.1:6288)
-PUBKY_ADMIN_PASSWORD=admin cargo run -- admin info
+PUBKY_ADMIN_PASSWORD=admin pubky-cli admin info
 
 # Create a recovery file (writes ./alice.recovery and prints the pubkey)
-cargo run -- tools generate-recovery ./alice.recovery --passphrase pass
+pubky-cli tools generate-recovery ./alice.recovery --passphrase pass
 
 # Signup a user (passphrase entered interactively unless the env var below is set)
-PUBKY_CLI_RECOVERY_PASSPHRASE=pass cargo run -- user signup <homeserver-pk> ./alice.recovery --testnet
+PUBKY_CLI_RECOVERY_PASSPHRASE=pass pubky-cli user signup --singup-code <signup-code> <homeserver-pk> ./alice.recovery --testnet
 ```
 
 ### Common Flows
@@ -41,23 +41,23 @@ Once your homeserver is running locally you can drive full workflows directly fr
 
 ```bash
 # 1) Create a recovery file and note the printed public key
-cargo run -- tools generate-recovery ./alice.recovery --passphrase pass
+pubky-cli tools generate-recovery ./alice.recovery --passphrase pass
 
 # 2) Sign up; replace <homeserver-pk> with your server's public key
 PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
-  cargo run -- user signup <homeserver-pk> ./alice.recovery --testnet
+  pubky-cli user signup <homeserver-pk> ./alice.recovery --testnet
 
 # 3) Sign in to establish a session
 PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
-  cargo run -- user signin ./alice.recovery --testnet
+  pubky-cli user signin ./alice.recovery --testnet
 
 # 4) Inspect the active session
 PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
-  cargo run -- user session ./alice.recovery --testnet
+  pubky-cli user session ./alice.recovery --testnet
 
 # 5) Sign out when finished
 PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
-  cargo run -- user signout ./alice.recovery --testnet
+  pubky-cli user signout ./alice.recovery --testnet
 ```
 
 #### User Publish/Get/Delete Data
@@ -65,15 +65,15 @@ PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
 ```bash
 # 1) Publish data from file
 PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
-  cargo run -- user publish "/pub/my-cool-app/hello.txt" test.txt ./alice.recovery --testnet
+  pubky-cli user publish "/pub/my-cool-app/hello.txt" test.txt ./alice.recovery --testnet
 
 # 2) Get data by path
 PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
-  cargo run -- user get /pub/my-cool-app/hello.txt ./alice.recovery 
+  pubky-cli user get /pub/my-cool-app/hello.txt ./alice.recovery 
 
 # 3) Delete data by path
 PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
-  cargo run -- user delete "/pub/my-cool-app/hello.txt" ./alice.recovery 
+  pubky-cli user delete "/pub/my-cool-app/hello.txt" ./alice.recovery 
 ```
 
 
@@ -81,10 +81,10 @@ PUBKY_CLI_RECOVERY_PASSPHRASE=pass \
 
 ```bash
 # Use the user's public key printed during signup
-PUBKY_ADMIN_PASSWORD=admin cargo run -- admin user disable <user-pubkey>
+PUBKY_ADMIN_PASSWORD=admin pubky-cli admin user disable <user-pubkey>
 
 # Re-enable the same user
-PUBKY_ADMIN_PASSWORD=admin cargo run -- admin user enable <user-pubkey>
+PUBKY_ADMIN_PASSWORD=admin pubky-cli admin user enable <user-pubkey>
 ```
 
 The examples above assume defaults (`http://127.0.0.1:6288` for the admin API and `--testnet`
