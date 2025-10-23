@@ -1,6 +1,8 @@
-# Pubky CLI
-
 [![CI](https://github.com/pubky/pubky-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/pubky/pubky-cli/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/pubky-cli.svg)](https://crates.io/crates/pubky-cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+# Pubky CLI
 
 A Rust-based command line companion for interacting with Pubky homeservers. It wraps both the
 admin and user-facing APIs, reusing the official `pubky` SDK (`0.6.0-rc.6`) and the
