@@ -5,7 +5,7 @@
 # Pubky CLI
 
 A Rust-based command line companion for interacting with Pubky homeservers. It wraps both the
-admin and user-facing APIs, reusing the official `pubky` SDK (`0.6.0-rc.6`) and the
+admin and user-facing APIs, reusing the official `pubky` SDK (`0.6.0`) and the
 `pubky-testnet` harness so you can automate local testing or drive a real deployment from scripts.
 
 ## Features
@@ -157,7 +157,7 @@ Caching is enabled for the cargo registry, git index, and the `target` directory
 
 ## Useful References
 
-- [Pubky SDK docs](https://docs.rs/pubky/0.6.0-rc.6/pubky/)
+- [Pubky SDK docs](https://docs.rs/pubky/0.6.0/pubky/)
 - [pubky-core repository](https://github.com/pubky/pubky-core)
 
 Feedback and contributions are welcome—feel free to open issues or PRs!\*\*\*
