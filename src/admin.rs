@@ -190,7 +190,7 @@ async fn generate_signup_token(connection: ConnectionArgs) -> Result<()> {
 async fn disable_user(client: &AdminHttpClient, pubky: &str) -> Result<()> {
     let public_key = PublicKey::from_str(pubky)?;
     client
-        .post_empty(&format!("users/{}/disable", public_key))
+        .post_empty(&format!("users/{}/disable", public_key.z32()))
         .await?;
 
     println!("Disabled user {}", public_key);
@@ -201,7 +201,7 @@ async fn disable_user(client: &AdminHttpClient, pubky: &str) -> Result<()> {
 async fn enable_user(client: &AdminHttpClient, pubky: &str) -> Result<()> {
     let public_key = PublicKey::from_str(pubky)?;
     client
-        .post_empty(&format!("users/{}/enable", public_key))
+        .post_empty(&format!("users/{}/enable", public_key.z32()))
         .await?;
 
     println!("Enabled user {}", public_key);
@@ -222,7 +222,7 @@ async fn delete_entry(client: &AdminHttpClient, pubky: &str, path: &str) -> Resu
         bail!("entry path must start with /pub/");
     }
 
-    let endpoint = format!("webdav/{}{}", public_key, normalized_path);
+    let endpoint = format!("webdav/{}{}", public_key.z32(), normalized_path);
     client.delete(&endpoint).await?;
 
     println!("Deleted entry {}{}", public_key, normalized_path);

@@ -33,6 +33,7 @@ async fn admin_info_command_returns_stats() -> Result<()> {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let predicate = predicates::str::contains("Users: 0")
         .and(predicates::str::contains("Disabled users: 0"))
+        .and(predicates::str::contains("Disk usage (MB):"))
         .and(predicates::str::contains("Signup codes: 0"));
     assert!(
         predicate.eval(&stdout),
@@ -50,7 +51,7 @@ async fn admin_user_disable_and_enable_flow() -> Result<()> {
     sleep(Duration::from_millis(500)).await;
 
     let admin_url = admin_base_url(&network);
-    let homeserver_pk = network.homeserver().public_key();
+    let homeserver_pk = network.homeserver_app().public_key();
 
     let sdk = network.sdk().context("build sdk facade")?;
     let keypair = Keypair::random();
@@ -139,7 +140,7 @@ async fn admin_storage_delete_removes_entry() -> Result<()> {
     sleep(Duration::from_millis(500)).await;
 
     let admin_url = admin_base_url(&network);
-    let homeserver_pk = network.homeserver().public_key();
+    let homeserver_pk = network.homeserver_app().public_key();
 
     let sdk = network.sdk().context("build sdk facade")?;
     let keypair = Keypair::random();
@@ -260,7 +261,7 @@ async fn user_signup_signin_session_signout_flow() -> Result<()> {
     let temp_dir = tempdir().context("create temp dir")?;
     let recovery_path = temp_dir.path().join("alice.recovery");
     let recovery_str = recovery_path.to_string_lossy().to_string();
-    let homeserver_pk = network.homeserver().public_key().to_string();
+    let homeserver_pk = network.homeserver_app().public_key().to_string();
 
     run_cli_dynamic(
         &[
@@ -329,7 +330,7 @@ async fn user_list_includes_uploaded_file() -> Result<()> {
     let temp_dir = tempdir().context("create temp dir")?;
     let recovery_path = temp_dir.path().join("user.recovery");
     let recovery_str = recovery_path.to_string_lossy().to_string();
-    let homeserver_pk = network.homeserver().public_key().to_string();
+    let homeserver_pk = network.homeserver_app().public_key().to_string();
 
     run_cli_dynamic(
         &[
@@ -364,7 +365,7 @@ async fn user_list_includes_uploaded_file() -> Result<()> {
         .context("upload file for list test")?;
     session.signout().await.map_err(|(err, _)| err)?;
 
-    let list_url = format!("pubky://{}/pub/app/", keypair.public_key());
+    let list_url = format!("pubky://{}/pub/app/", keypair.public_key().z32());
     let list_output =
         run_cli_dynamic(&["user", "list", &list_url, "--testnet", "--shallow"], env).await?;
     let out = String::from_utf8_lossy(&list_output.stdout);
@@ -388,7 +389,7 @@ async fn user_publish_data() -> Result<()> {
     let temp_dir = tempdir().context("create temp dir")?;
     let recovery_path = temp_dir.path().join("user.recovery");
     let recovery_str = recovery_path.to_string_lossy().to_string();
-    let homeserver_pk = network.homeserver().public_key().to_string();
+    let homeserver_pk = network.homeserver_app().public_key().to_string();
 
     // Generate recovery file
     run_cli_dynamic(
@@ -450,7 +451,7 @@ async fn user_get_data() -> Result<()> {
     let temp_dir = tempdir().context("create temp dir")?;
     let recovery_path = temp_dir.path().join("user.recovery");
     let recovery_str = recovery_path.to_string_lossy().to_string();
-    let homeserver_pk = network.homeserver().public_key().to_string();
+    let homeserver_pk = network.homeserver_app().public_key().to_string();
 
     // Generate recovery file
     run_cli_dynamic(
@@ -517,7 +518,7 @@ async fn user_delete_data() -> Result<()> {
     let temp_dir = tempdir().context("create temp dir")?;
     let recovery_path = temp_dir.path().join("user.recovery");
     let recovery_str = recovery_path.to_string_lossy().to_string();
-    let homeserver_pk = network.homeserver().public_key().to_string();
+    let homeserver_pk = network.homeserver_app().public_key().to_string();
 
     // Generate recovery file
     run_cli_dynamic(
@@ -676,7 +677,11 @@ async fn fetch_info(admin_url: &str, password: &str) -> Result<AdminInfo> {
 }
 
 fn admin_base_url(network: &EphemeralTestnet) -> String {
-    format!("http://{}", network.homeserver().admin().listen_socket())
+    let admin = network
+        .homeserver_app()
+        .admin_server()
+        .expect("admin server enabled");
+    format!("http://{}", admin.listen_socket())
 }
 
 async fn start_testnet() -> Result<EphemeralTestnet> {
@@ -684,25 +689,20 @@ async fn start_testnet() -> Result<EphemeralTestnet> {
     let mut last_err: Option<anyhow::Error> = None;
 
     for _attempt in 0..MAX_ATTEMPTS {
-        match EphemeralTestnet::start_minimal().await {
-            Ok(mut network) => {
-                if let Err(err) = network.testnet.create_pkarr_relay().await {
-                    last_err = Some(err.into());
-                    sleep(Duration::from_millis(250)).await;
-                    continue;
-                }
+        let result: Result<EphemeralTestnet> = async {
+            let mut network = EphemeralTestnet::builder()
+                .config(pubky_testnet::pubky_homeserver::ConfigToml::default_test_config())
+                .keypair(Keypair::random())
+                .with_http_relay()
+                .build()
+                .await?;
+            network.testnet.create_pkarr_relay().await?;
+            Ok(network)
+        }
+        .await;
 
-                match network.testnet.create_homeserver().await {
-                    Ok(_) => {
-                        return Ok(network);
-                    }
-                    Err(err) => {
-                        last_err = Some(err);
-                        sleep(Duration::from_millis(250)).await;
-                        continue;
-                    }
-                }
-            }
+        match result {
+            Ok(network) => return Ok(network),
             Err(err) => {
                 last_err = Some(err);
                 sleep(Duration::from_millis(250)).await;

@@ -13,7 +13,7 @@ categories = ["command-line-utilities"]
 anyhow = "1.0.99"
 clap = { version = "4.5.46", features = ["derive", "env"] }
 clap_complete = "4.5.6"
-pubky = "0.6.0-rc.6"
+pubky = "0.6.0"
 tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
 rpassword = "7.4.0"
 reqwest = { version = "0.12.24", default-features = false, features = ["json", "rustls-tls"] }
@@ -22,6 +22,6 @@ serde = { version = "1.0.210", features = ["derive"] }
 [dev-dependencies]
 assert_cmd = "2.0.12"
 predicates = "3.1.2"
-pubky-testnet = "0.6.0-rc.6exp"
+pubky-testnet = "0.6.0"
 tempfile = "3.10.1"
 serial_test = "3.1.1"
