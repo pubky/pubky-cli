@@ -158,6 +158,6 @@ Caching is enabled for the cargo registry, git index, and the `target` directory
 ## Useful References
 
 - [Pubky SDK docs](https://docs.rs/pubky/0.6.0-rc.6/pubky/)
-- [pubky-core repository](https://github.com/pubky/pubky-core)
+- [Pubky Homeserver repository](https://github.com/pubky/pubky-homeserver)
 
 Feedback and contributions are welcome—feel free to open issues or PRs!\*\*\*
