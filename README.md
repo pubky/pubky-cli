@@ -4,6 +4,10 @@
 
 # Pubky CLI
 
+> [!WARNING]
+> This repository is deprecated. Development has moved to
+> [homeservercli](https://github.com/pubky/pubky-homeserver/tree/main/homeservercli).
+
 A Rust-based command line companion for interacting with Pubky homeservers. It wraps both the
 admin and user-facing APIs, reusing the official `pubky` SDK (`0.6.0-rc.6`) and the
 `pubky-testnet` harness so you can automate local testing or drive a real deployment from scripts.
